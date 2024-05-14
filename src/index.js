@@ -1,53 +1,48 @@
 import { fetchBreeds, fetchCatByBreed } from './cat-api';
-import SlimSelect from 'Slimselect';
-import 'slim-select/dist/slimselect.css';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import Notiflix from 'notiflix';
 
-const breedSelect = document.querySelector('.breed-select');
+const dropdownBreedSelect = document.querySelector('.breed-select');
 const catInfo = document.querySelector('.cat-info');
-const loaderElement = document.querySelector('.loader');
-const errorElement = document.querySelector('.error');
+const loader = document.querySelector('.loader');
+const error = document.querySelector('.error');
 
-loaderElement.style.display = 'none';
-errorElement.style.display = 'none';
+loader.style.display = 'none';
+error.style.display = 'none';
 
 fetchBreeds()
   .then(breeds => {
-    const fragmentElement = document.createDocumentFragment();
     breeds.forEach(breed => {
-      const optionElement = document.createElement('option');
-      optionElement.textContent = breed.name;
-      optionElement.value = breed.id;
-      fragmentElement.append(optionElement);
-    });
-
-    breedSelect.append(fragmentElement);
-    new SlimSelect({
-      select: breedSelect,
+      const listOption = document.createElement('option');
+      listOption.textContent = breed.name;
+      listOption.value = breed.id;
+      dropdownBreedSelect.append(listOption);
     });
   })
   .catch(error => {
-    loaderElement.style.display = 'none';
-    Notify.failure(errorElement.textContent, error);
-    errorElement.style.display = 'block';
+    loader.style.display = 'none';
+    error.style.display = 'block';
+    Notiflix.Notify.failure(error.textContent);
   });
 
-breedSelect.addEventListener('change', function () {
-  const breedId = breedSelect.value;
-  loaderElement.style.display = 'block';
+dropdownBreedSelect.addEventListener('change', function () {
+  loader.style.display = 'block';
+  error.style.display = 'none';
   catInfo.style.display = 'none';
+  const breedId = dropdownBreedSelect.value;
   fetchCatByBreed(breedId)
-    .then(catData => {
-      loaderElement.style.display = 'none';
+    .then(catDetails => {
+      loader.style.display = 'none';
       catInfo.style.display = 'flex';
-      catInfo.innerHTML = `<img class="catImage" src=${catData[0].url}  width="300px" alt="Image of a ${catData[0].breeds[0].name} cat ">
-      <h1 class="catBreed">${catData[0].breeds[0].name}  </h1>
-      <p class="catDescription">${catData[0].breeds[0].description}  </p>
-      <p class="catTemperament">Temperament: ${catData[0].breeds[0].temperament}  </p>
+      catInfo.style.gap = '25px';
+      catInfo.style.marginTop = '25px';
+      catInfo.innerHTML = `<img src=${catDetails[0].url}  width="300px" alt="The ${catDetails[0].breeds[0].name} cat">
+      <div><h1 class="catBreed">${catDetails[0].breeds[0].name}  </h1>
+      <p>${catDetails[0].breeds[0].description}  </p>
+      <h5>Temperament: ${catDetails[0].breeds[0].temperament}  </h5></div>
       `;
     })
     .catch(error => {
-      loaderElement.style.display = 'none';
-      Notify.failure(errorElement.textContent, error);
+      loader.style.display = 'none';
+      Notiflix.Notify.failure(error.textContent);
     });
 });
